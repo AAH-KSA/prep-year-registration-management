@@ -1,0 +1,77 @@
+{
+  "entities": {
+    "Student": {
+      "title": "Student",
+      "description": "Student registration and academic record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "gender": { "type": "string", "enum": ["Male", "Female"] },
+        "admittedMajor": { "type": "string" },
+        "term": { "type": "string" },
+        "englishPlacement": { "type": "string" },
+        "mathPlacement": { "type": "string" },
+        "academicLevel": { "type": "string", "enum": ["Prep", "Freshmen"] },
+        "status": { "type": "string", "enum": ["Under Process", "Registered"] },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "englishSection": { "type": "string" },
+        "mathSection": { "type": "string" },
+        "engl001": { "type": "string" },
+        "engl002": { "type": "string" },
+        "engl003": { "type": "string" },
+        "engl004": { "type": "string" },
+        "math001": { "type": "string" },
+        "math002": { "type": "string" },
+        "math012": { "type": "string" }
+      },
+      "required": ["id", "name", "gender", "admittedMajor", "term", "academicLevel", "status", "updatedAt"]
+    },
+    "ScheduleRequest": {
+      "title": "ScheduleRequest",
+      "description": "Request for schedule adjustment",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "requestType": { "type": "string", "enum": ["Section Change", "English Shift"] },
+        "details": { "type": "string" },
+        "courseName": { "type": "string" },
+        "sectionNumber": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "Registered", "Needs Revision"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "studentId", "studentName", "requestType", "details", "status", "createdAt"]
+    },
+    "ActivityLog": {
+      "title": "ActivityLog",
+      "description": "Record of system activities",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["Admission", "Placement", "StatusUpdate", "Adjustment", "System"] },
+        "description": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "actor": { "type": "string" }
+      },
+      "required": ["id", "type", "description", "timestamp", "actor"]
+    }
+  },
+  "firestore": {
+    "/students/{studentId}": {
+      "schema": "Student",
+      "description": "Collection of student records"
+    },
+    "/requests/{requestId}": {
+      "schema": "ScheduleRequest",
+      "description": "Collection of schedule requests"
+    },
+    "/logs/{logId}": {
+      "schema": "ActivityLog",
+      "description": "Collection of activity logs"
+    }
+  }
+}

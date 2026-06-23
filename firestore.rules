@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Student Validation
+    function isValidStudent(data) {
+      return data.keys().hasAll(['id', 'name', 'gender', 'admittedMajor', 'term', 'englishPlacement', 'mathPlacement', 'academicLevel', 'status', 'updatedAt'])
+        && data.keys().size() <= 20
+        && data.id is string && data.id.size() <= 64
+        && data.name is string && data.name.size() <= 128
+        && data.gender in ['Male', 'Female']
+        && data.academicLevel in ['Prep', 'Freshmen']
+        && data.status in ['Under Process', 'Registered']
+        && data.updatedAt is string; // Using string format for date-time as per blueprint
+    }
+
+    match /students/{studentId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidStudent(incoming());
+      allow update: if isSignedIn() && isValidStudent(incoming());
+      allow delete: if isSignedIn(); // In this app, admins (registrar/prep) can delete
+    }
+
+    // Request Validation
+    function isValidRequest(data) {
+      return data.keys().hasAll(['id', 'studentId', 'studentName', 'requestType', 'details', 'status', 'createdAt'])
+        && data.keys().size() <= 12
+        && data.id is string
+        && data.studentId is string
+        && data.status in ['Pending', 'Registered', 'Needs Revision']
+        && data.requestType in ['Section Change', 'English Shift', 'Special Needs'];
+    }
+
+    match /requests/{requestId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidRequest(incoming());
+      allow update: if isSignedIn() && isValidRequest(incoming());
+      allow delete: if isSignedIn();
+    }
+
+    // Log Validation
+    function isValidLog(data) {
+      return data.keys().hasAll(['id', 'type', 'description', 'timestamp', 'actor'])
+        && data.keys().size() <= 7
+        && data.type in ['Admission', 'Placement', 'StatusUpdate', 'Adjustment', 'System'];
+    }
+
+    match /logs/{logId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidLog(incoming());
+      allow update: if false; // Logs should be immutable
+      allow delete: if false;
+    }
+  }
+}
